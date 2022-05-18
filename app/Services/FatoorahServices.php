@@ -8,44 +8,45 @@ use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Session\SessionManager;
 class FatoorahServices {
+
     private $request_client;
     private $headers;
     private $base_url;
-        public function construct(Client $request_client){
 
-                $this->$request_client = $request_client;
+        public function __construct(Client $request_client){
+
+                $this->request_client = $request_client;
                 $this->base_url = env('fatoorah_base_url');
-                $this->headers=
-                    [
+                $this->headers= [
                     'Content_Type'=>'application/json',
-                    'autherization'=>'Bearer'.env('fatoorah_token') //token
+                    'authorization'=>'Bearer '.env('fatoorah_token') //token
                     ];
         }
 
-        public function buildRequest($uri , $method , $body = []){
+
+        public function buildRequest($uri , $method , $data = []){
 
             $request = new Request($method , $this->base_url.$uri , $this->headers);
 
-            if(!$body)
-                return false;
+//            if(!$data)
+//                return false;
 
-             $response = $this->request_client->send($request ,
-                 ['json'=> $body] );
+            $response = $this->request_client->send($request ,
+                 ['json'=> $data] );
 
-             if($response->getStatusCode() != 200)
-                 return false;
-             $response = json_decode($response->getBody() , true);
+//            if($response->getStatusCode() != 200)
+//                 return false;
+           $response = json_decode($response->getBody() , true); //returns a url
 
             return $response;
         }
-        public function sendPayment($patient_id , $fee , $plan_id , $subscriptionPlan){
-            $requestData = $this->parsePaymentData();
-            $responce = $this->buildRequest('v2/SendPayment' , 'Post' , $requestData );
-                if ($responce) {
-                    $this->saveTransActionPayment($patient_id, ['Data']['Invoice_Id']);
-                }
-            return $responce;
+
+
+        public function sendPayment($data){
+           return $this->buildRequest('/v2/SendPayment' , 'POST' , $data); //CONNECTION DETAILS
         }
+
+
         public function parsePaymentData($user_id){
                 $user = User::find($user_id);
                 return [
@@ -59,5 +60,11 @@ class FatoorahServices {
                     'CustomerCivilId'    => 'CivilId',
                 ];
         }
+
+    public function getCallbackStatus(array $data)
+    {
+        return $this->buildRequest('/v2/getPaymentStatus' , 'POST' , $data); //CONNECTION DETAILS
+
+    }
 
 }

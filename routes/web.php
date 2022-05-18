@@ -16,4 +16,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('pay',  [\App\Http\Controllers\PaymentController::class,'payOrder']);
+
+Route::get('callback', function (){
+    return 'success';
+})->name('callback');
+
+Route::get('error', function (){
+    return 'error';
+})->name('error');
+Route::get('paid',  [\App\Http\Controllers\PaymentController::class,'paid']);
+
